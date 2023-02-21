@@ -25,7 +25,7 @@ public class HTMLDownloaderSelenium extends AbstractHTMLDownloader {
      */
     public HTMLDownloaderSelenium() {
         super();
-        System.setProperty("webdriver.chrome.driver", "./chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver", "./chromedriver");
         driver = new ChromeDriver();
     }
 
