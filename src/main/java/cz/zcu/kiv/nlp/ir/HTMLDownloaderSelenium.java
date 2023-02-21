@@ -4,7 +4,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
 import us.codecraft.xsoup.Xsoup;
 
 import java.util.ArrayList;
@@ -13,7 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class is a demonstration of how crawler4j can be used to download a website
+ * This class is a demonstration of how crawler4j can be used to download a
+ * website
  * Created by Tigi on 31.10.2014.
  */
 public class HTMLDownloaderSelenium extends AbstractHTMLDownloader {
@@ -64,7 +64,6 @@ public class HTMLDownloaderSelenium extends AbstractHTMLDownloader {
         return results;
     }
 
-
     /**
      * Downloads given url page and extracts xpath expression.
      *
@@ -88,6 +87,3 @@ public class HTMLDownloaderSelenium extends AbstractHTMLDownloader {
         return list;
     }
 }
-
-
-
