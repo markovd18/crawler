@@ -5,7 +5,6 @@ import cz.zcu.kiv.nlp.ir.HTMLDownloaderInterface;
 import cz.zcu.kiv.nlp.ir.Utils;
 import cz.zcu.kiv.nlp.utils.Links;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -24,13 +23,12 @@ public class Crawler {
     private final static Map<String, String> xpathMap = new HashMap<String, String>();
 
     static {
-        xpathMap.put("allText", "//div[@class='oborList']/allText()");
-        xpathMap.put("html", "//div[@class='oborList']/html()");
-        xpathMap.put("tidyText", "//div[@class='oborList']/tidyText()");
+        xpathMap.put("allText", "//article/div/allText()");
+        xpathMap.put("html", "//article/div/html()");
+        xpathMap.put("tidyText", "//article/div/tidyText()");
     }
 
-    private static String SITE = "https://www.vysokeskoly.com";
-    private static String SITE_SUFFIX = "/prehled-oboru/";
+    private static String SITE = "https://beta.reactjs.org";
 
     private static String URLS_STORAGE_PATH = "_urls.txt";
 
@@ -125,26 +123,30 @@ public class Crawler {
         return Optional.of(crawlUrlsFromWebsite());
     }
 
-    private Optional<Set<String>> loadUrlsFromStorage(final File storage) {
-        try {
-            List<String> lines = Utils.readTXTFile(new FileInputStream(storage));
-            return Optional.of(lines.stream().collect(Collectors.toSet()));
-        } catch (FileNotFoundException e) {
-            log.error("Storage with urls was not found", e);
-            return Optional.empty();
-        }
+    private boolean isSiteInMobileResolution() {
+        // in mobile resolution there is a hamburger menu button with aria-label 'Menu'
+        final var foundElements = downloader.getLinks(SITE, "//div/button[@type='button' AND @aria-label='Menu']");
+        return foundElements.size() > 0;
     }
 
     private Set<String> crawlUrlsFromWebsite() {
-        final var urlsSet = new HashSet<String>();
-        int max = 200;
-        max = 800;
-        for (int i = 0; i < max; i = i + 100) {
-            String link = SITE + SITE_SUFFIX + "?pgf0=" + i;
-            urlsSet.addAll(downloader.getLinks(link, "//div[@id='skoolList']//h3/a/@href"));
+        // navigation panel is different in mobile and desktop view
+        if (isSiteInMobileResolution()) {
+            return downloader.getLinks(SITE, "//nav//ul/li/a[starts-with(@href, '/')]/@href")
+                    .stream()
+                    .collect(Collectors.toSet());
         }
 
-        return urlsSet;
+        final var baseNavigationUrls = downloader.getLinks(SITE, "//nav/ul/li/a[starts-with(@href, '/')]/@href")
+                .stream()
+                .collect(Collectors.toSet());
+        final var allNavigationUrls = new HashSet<String>(baseNavigationUrls);
+        for (final var url : baseNavigationUrls) {
+            String link = SITE + url;
+            allNavigationUrls.addAll(downloader.getLinks(link, "//nav/ul//ul/li/a[starts-with(@href, '/')]/@href"));
+        }
+
+        return allNavigationUrls;
     }
 
     private Map<String, PrintStream> initiatePrintStreams(final Map<String, Map<String, List<String>>> results) {

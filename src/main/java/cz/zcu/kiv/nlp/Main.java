@@ -9,7 +9,7 @@ import cz.zcu.kiv.nlp.vs.Crawler;
 
 public class Main {
 
-  private static final String STORAGE = "./storage/VSCOMTest";
+  private static final String STORAGE = "./storage/reactjs-docs";
   private static final int POLITENESS_INTERVAL_MILLIS = 1200;
 
   public static void main(final String[] args) {
