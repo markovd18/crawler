@@ -23,12 +23,12 @@ public class Crawler {
     private final static Map<String, String> xpathMap = new HashMap<String, String>();
 
     static {
-        xpathMap.put("allText", "//article/div/allText()");
-        xpathMap.put("html", "//article/div/html()");
-        xpathMap.put("tidyText", "//article/div/tidyText()");
+        xpathMap.put("allText", "//div[contains(@class, 'article')]/allText()");
+        xpathMap.put("html", "//div[contains(@class, 'article')]/html()");
+        xpathMap.put("tidyText", "//div[contains(@class, 'article')]/tidyText()");
     }
 
-    private static String SITE = "https://beta.reactjs.org";
+    private static String SITE = "https://www.hokej.cz";
 
     private static String URLS_STORAGE_PATH = "_urls.txt";
 
@@ -103,15 +103,6 @@ public class Crawler {
         reportProblems(downloader.getFailedLinks());
         downloader.emptyFailedLinks();
         log.info("-----------------------------");
-
-        // // Print some information.
-        // for (String key : results.keySet()) {
-        // Map<String, List<String>> map = results.get(key);
-        // Utils.saveFile(new File(STORAGE + "/" +
-        // Utils.SDF.format(System.currentTimeMillis()) + "_" + key + "_final.txt"),
-        // map, idMap);
-        // log.info(key + ": " + map.size());
-        // }
     }
 
     private Optional<Set<String>> loadUrls() {
@@ -123,30 +114,19 @@ public class Crawler {
         return Optional.of(crawlUrlsFromWebsite());
     }
 
-    private boolean isSiteInMobileResolution() {
-        // in mobile resolution there is a hamburger menu button with aria-label 'Menu'
-        final var foundElements = downloader.getLinks(SITE, "//div/button[@type='button' AND @aria-label='Menu']");
-        return foundElements.size() > 0;
-    }
-
     private Set<String> crawlUrlsFromWebsite() {
-        // navigation panel is different in mobile and desktop view
-        if (isSiteInMobileResolution()) {
-            return downloader.getLinks(SITE, "//nav//ul/li/a[starts-with(@href, '/')]/@href")
-                    .stream()
-                    .collect(Collectors.toSet());
-        }
-
-        final var baseNavigationUrls = downloader.getLinks(SITE, "//nav/ul/li/a[starts-with(@href, '/')]/@href")
+        final var mainArticleUrls = downloader.getLinks(SITE,
+                "//section[@class='h-posts-section']//div[@class='h-posts-box']//article/a[starts-with(@href, '/')]/@href")
                 .stream()
                 .collect(Collectors.toSet());
-        final var allNavigationUrls = new HashSet<String>(baseNavigationUrls);
-        for (final var url : baseNavigationUrls) {
-            String link = SITE + url;
-            allNavigationUrls.addAll(downloader.getLinks(link, "//nav/ul//ul/li/a[starts-with(@href, '/')]/@href"));
-        }
 
-        return allNavigationUrls;
+        final var sideListArticleUrls = downloader.getLinks(SITE,
+                "//section[@class='h-posts-section']//ul[@class='h-posts-list']//li/h3/a[starts-with(@href, '/')]/@href")
+                .stream()
+                .collect(Collectors.toSet());
+
+        mainArticleUrls.addAll(sideListArticleUrls);
+        return mainArticleUrls;
     }
 
     private Map<String, PrintStream> initiatePrintStreams(final Map<String, Map<String, List<String>>> results) {
