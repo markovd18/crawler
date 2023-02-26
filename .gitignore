@@ -5,3 +5,5 @@ compiled
 target
 
 storage
+*.jar
+*.zip
